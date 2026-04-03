@@ -143,7 +143,6 @@
       const engRegex = /^([a-zA-Z]{3} \d{1,2}, \d{4}) at (\d{1,2}:\d{2}[\s\u202F]?[AP]M), (.*?) : (.*)$/;
       const engSysRegex = /^([a-zA-Z]{3} \d{1,2}, \d{4}) at (\d{1,2}:\d{2}[\s\u202F]?[AP]M):\s*(.*)$/;
       
-      // 한글 포맷은 '2015년 1월 7일' 형태와 '2015. 1. 7.' 형태를 모두 지원하도록 수정
       const korRegex = /^(\d{4})[년.]\s*(\d{1,2})[월.]\s*(\d{1,2})[일.]?\s*(오전|오후)\s*(\d{1,2}:\d{2}),\s*(.*?)\s*:\s*(.*)$/;
       const korSysRegex = /^(\d{4})[년.]\s*(\d{1,2})[월.]\s*(\d{1,2})[일.]?\s*(오전|오후)\s*(\d{1,2}:\d{2}):\s*(.*)$/;
       
@@ -483,14 +482,13 @@
         <div class="flex flex-col md:flex-row h-full bg-gray-100 font-sans overflow-hidden">
           
           <!-- Sidebar (Calendar, Search & File Replace) -->
-          <!-- 수정: 높이를 유연하게 조절하고 창 크기가 작을때도 내부 스크롤이 발생하도록 max-h 속성을 25vh로 단축 적용 -->
-          <div class="w-full md:w-80 bg-white border-b md:border-b-0 md:border-r border-gray-200 flex flex-col shadow-lg z-10 shrink-0 max-h-[25vh] md:max-h-none md:h-full">
+          <div class="w-full md:w-80 bg-white border-b md:border-b-0 md:border-r border-gray-200 flex flex-col shadow-lg z-10 shrink-0 max-h-[25vh] md:max-h-full">
             
-            <!-- 사이드바 스크롤 영역 (파일 교체 영역 포함) -->
-            <div class="flex-1 overflow-y-auto custom-scrollbar relative flex flex-col">
+            <!-- 사이드바 스크롤 영역: flex 구조 변경 및 min-h-0 추가로 스크롤 이슈 완벽 해결 -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar relative min-h-0">
               
-              <!-- 파일 교체 영역 (이제 스크롤 내부에서 함께 움직입니다) -->
-              <div class="p-4 border-b border-gray-100 bg-gray-50 shrink-0">
+              <!-- 파일 교체 영역 -->
+              <div class="p-4 border-b border-gray-100 bg-gray-50">
                 <div 
                   ondragenter="app.handleDragEnter(event)"
                   ondragover="app.handleDragOver(event)" 
@@ -570,8 +568,8 @@
             </div>
           </div>
 
-          <!-- Main Chat Area -->
-          <div class="flex-1 bg-[#b2c7d9] overflow-y-auto scroll-smooth relative custom-scrollbar">
+          <!-- Main Chat Area: min-h-0 추가로 레이아웃 안정성 극대화 -->
+          <div class="flex-1 bg-[#b2c7d9] overflow-y-auto scroll-smooth relative custom-scrollbar min-h-0">
             <div class="max-w-3xl mx-auto py-8 px-4 sm:px-6" id="chat-container">
             </div>
           </div>
