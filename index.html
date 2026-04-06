@@ -11,9 +11,10 @@
 * - 'Set as Me' feature (right-aligned yellow bubbles for the current user)
 * - System message parsing (invites, exits)
 * - Fully responsive layout for Desktop and Mobile environments
+* - Collapsible Sidebar for Mobile view with auto-hide on date selection
 * Author        : Kyungmin Lee
 * Date Created  : 2026.04.03
-* Version       : 1.1.0
+* Version       : 1.2.0
 * Tech Stack    : HTML5, CSS3, JavaScript (Vanilla), Tailwind CSS
 ================================================================================
 -->
@@ -71,6 +72,9 @@
       FileText: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>`,
       ChevronLeft: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`,
       ChevronRight: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`,
+      ChevronUp: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>`,
+      ChevronDown: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`,
+      Menu: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>`,
       Calendar: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
       Search: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
       ArrowUp: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>`,
@@ -89,6 +93,8 @@
       currentViewDate: new Date(),
       calendarMode: 'day', // 'day', 'month', 'year'
       fileName: '',
+      // 모바일 사이드바 토글 상태
+      isSidebarOpen: false,
       // 본인 설정 상태
       currentUser: '',
       // 검색 관련 상태
@@ -240,6 +246,7 @@
         state.searchQuery = '';
         state.searchResults = [];
         state.currentSearchIndex = -1;
+        state.isSidebarOpen = false; // 모바일 환경 시 기본으로 접기
 
         document.body.style.cursor = 'wait';
         
@@ -307,6 +314,25 @@
         }
       },
       
+      // --- Sidebar Toggle 로직 ---
+      toggleSidebar: function() {
+        state.isSidebarOpen = !state.isSidebarOpen;
+        const sidebarContent = document.getElementById('sidebar-content');
+        const toggleIcon = document.getElementById('sidebar-toggle-icon');
+        
+        if (sidebarContent && toggleIcon) {
+            if (state.isSidebarOpen) {
+                sidebarContent.classList.remove('hidden');
+                sidebarContent.classList.add('flex');
+                toggleIcon.innerHTML = Icons.ChevronUp;
+            } else {
+                sidebarContent.classList.add('hidden');
+                sidebarContent.classList.remove('flex');
+                toggleIcon.innerHTML = Icons.ChevronDown;
+            }
+        }
+      },
+
       // --- Calendar 로직 ---
       setCalendarMode: function(mode) {
         state.calendarMode = mode;
@@ -335,6 +361,11 @@
           const areaRect = scrollArea.getBoundingClientRect();
           const elRect = el.getBoundingClientRect();
           scrollArea.scrollBy({ top: elRect.top - areaRect.top, behavior: 'smooth' });
+        }
+        
+        // 모바일 환경이면 날짜 선택 후 사이드바 자동 닫기 (채팅 화면 확보)
+        if (window.innerWidth < 768 && state.isSidebarOpen) {
+            app.toggleSidebar();
         }
       },
 
@@ -489,13 +520,24 @@
         <div class="flex flex-col md:flex-row h-full bg-gray-100 font-sans overflow-hidden">
           
           <!-- Sidebar (Calendar, Search & File Replace) -->
-          <div class="w-full md:w-80 bg-white border-b md:border-b-0 md:border-r border-gray-200 flex flex-col shadow-lg z-10 shrink-0 max-h-[25vh] md:max-h-full">
+          <div class="w-full md:w-80 bg-white border-b md:border-b-0 md:border-r border-gray-200 flex flex-col shadow-lg z-10 shrink-0 md:max-h-full">
             
-            <!-- 사이드바 스크롤 영역: flex 구조 변경 및 min-h-0 추가로 스크롤 이슈 완벽 해결 -->
-            <div class="flex-1 overflow-y-auto custom-scrollbar relative min-h-0">
+            <!-- 모바일 전용 사이드바 토글 헤더 -->
+            <div class="md:hidden flex items-center justify-between p-3.5 bg-white border-b border-gray-200 cursor-pointer active:bg-gray-50 transition-colors shrink-0" onclick="app.toggleSidebar()">
+              <div class="flex items-center text-gray-700 font-bold text-[14px]">
+                <span class="mr-2 text-gray-500">${Icons.Menu}</span>
+                <span>메뉴 및 달력 검색</span>
+              </div>
+              <div id="sidebar-toggle-icon" class="text-gray-400 bg-gray-100 p-1 rounded-md">
+                ${state.isSidebarOpen ? Icons.ChevronUp : Icons.ChevronDown}
+              </div>
+            </div>
+
+            <!-- 사이드바 스크롤 영역: 펼쳤을 때 화면의 25% 정도(max-h-[25vh])만 차지하도록 제한 -->
+            <div id="sidebar-content" class="${state.isSidebarOpen ? 'flex' : 'hidden'} md:flex flex-1 overflow-y-auto custom-scrollbar relative min-h-0 flex-col max-h-[25vh] md:max-h-none">
               
               <!-- 파일 교체 영역 -->
-              <div class="p-4 border-b border-gray-100 bg-gray-50">
+              <div class="p-4 border-b border-gray-100 bg-gray-50 shrink-0">
                 <div 
                   ondragenter="app.handleDragEnter(event)"
                   ondragover="app.handleDragOver(event)" 
