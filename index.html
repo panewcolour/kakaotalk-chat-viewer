@@ -330,8 +330,11 @@
       },
       scrollToDate: function(dateStr) {
         const el = document.getElementById(`date-${dateStr}`);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const scrollArea = document.getElementById('chat-scroll-area');
+        if (el && scrollArea) {
+          const areaRect = scrollArea.getBoundingClientRect();
+          const elRect = el.getBoundingClientRect();
+          scrollArea.scrollBy({ top: elRect.top - areaRect.top, behavior: 'smooth' });
         }
       },
 
@@ -441,10 +444,14 @@
 
         // 해당 하이라이트 엘리먼트로 스크롤 이동
         const el = document.getElementById('search-match-' + state.currentSearchIndex);
-        if (el) {
+        const scrollArea = document.getElementById('chat-scroll-area');
+        if (el && scrollArea) {
             // 살짝 여유를 두어 스크롤이 확실히 되도록 함
             setTimeout(() => {
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const areaRect = scrollArea.getBoundingClientRect();
+                const elRect = el.getBoundingClientRect();
+                const offset = elRect.top - areaRect.top - (areaRect.height / 2) + (elRect.height / 2);
+                scrollArea.scrollBy({ top: offset, behavior: 'smooth' });
             }, 50);
         }
       }
@@ -569,7 +576,7 @@
           </div>
 
           <!-- Main Chat Area: min-h-0 추가로 레이아웃 안정성 극대화 -->
-          <div class="flex-1 bg-[#b2c7d9] overflow-y-auto scroll-smooth relative custom-scrollbar min-h-0">
+          <div id="chat-scroll-area" class="flex-1 bg-[#b2c7d9] overflow-y-auto scroll-smooth relative custom-scrollbar min-h-0">
             <div class="max-w-3xl mx-auto py-8 px-4 sm:px-6" id="chat-container">
             </div>
           </div>
